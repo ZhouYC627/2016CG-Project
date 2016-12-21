@@ -24,5 +24,7 @@ struct Point{
     int y;
     int b;
 };
+void setPixel(int x, int y);
+
 
 #endif /* common_h */

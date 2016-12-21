@@ -8,19 +8,16 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-#include <iostream>
-#include <algorithm>
-#include <cmath>
-#include <stack>
-#include <GLUT/GLUT.h>
+#include "common.h"
 #include "PatternGeneration.h"
 
 int ww = 600, wh = 600;
 int xi, yi, xf, yf;
 bool firstClick = true;
-
+vector<Point> polyPoints;
 using namespace std;
 
+void PolyScan(Point polypoints[], int num_line, double k0);
 
 //Calls Bresenham function when the mouse has traced a line
 bool drawLine = false;
@@ -28,18 +25,40 @@ int mode = 0;
 void mouse(int btn, int state, int x, int y)
 {
     if( btn == GLUT_LEFT_BUTTON && state == GLUT_UP ) {
-        if (firstClick) {
-            xi = x;
-            yi = (wh - y);
-            firstClick = false;
-            drawLine = false;
-        }
-        else {
-            xf = x;
-            yf = (wh - y);
-            firstClick = true;
-            drawLine = true;
-            glutPostRedisplay();
+        //simple pattern: 2 clicks
+        if (mode<=2){
+            if (firstClick) {
+                xi = x;
+                yi = (wh - y);
+                firstClick = false;
+                drawLine = false;
+            }
+            else {
+                xf = x;
+                yf = (wh - y);
+                firstClick = true;
+                drawLine = true;
+                glutPostRedisplay();
+            }
+        }else if (mode == 4){
+            Point now;
+            now.x = x;
+            now.y = wh - y;
+            if (polyPoints.empty()){
+                polyPoints.push_back(now);
+            }else{
+                Point lastPoint = polyPoints.back();
+                bresenham(lastPoint.x, lastPoint.y, now.x, now.y);
+                if ((abs(now.x-polyPoints[0].x)+abs(now.y-polyPoints[0].y))<20){
+                    cout<<"Draw Poly!"<<endl;
+                    PolyScan(&polyPoints[0], (int)polyPoints.size(), 0.5);
+                    polyPoints.clear();
+                }else{
+                    polyPoints.push_back(now);
+                }
+                glutPostRedisplay();
+            }
+            //polyPoints.push_back(Point{x, wh-y});
         }
     }
 }
@@ -181,6 +200,7 @@ void clearScene(){
 // Drawing (display) routine.
 void drawScene(void)
 {
+    glFlush();
     double rx, ry;
     switch (mode) {
         case 0:
@@ -205,7 +225,10 @@ void drawScene(void)
             firstClick = true;
             drawLine = true;
             break;
+        case 4:
+            break;
         case 100:
+            firstClick = true;
             clearScene();
             break;
         default:
@@ -215,17 +238,10 @@ void drawScene(void)
 }
 void rightBottonMenu(int value){
     switch (value) {
-        case 0:
-            mode = 0;
-            break;
-        case 1:
-            mode = 1;
-            break;
-        case 2:
-            mode = 2;
-            break;
-        case 3:
-            mode =3;
+        case 0:case 1:
+        case 2:case 3:
+        case 4:
+            mode = value;
             break;
         case 100:
             clearScene();
@@ -244,6 +260,7 @@ void createGLUTMenus(){
     glutAddMenuEntry("Ellipse", 1);
     glutAddMenuEntry("Circle", 2);
     glutAddMenuEntry("Fill", 3);
+    glutAddMenuEntry("Poly", 4);
     glutAddMenuEntry("Clear", 100);
     glutAddMenuEntry("Exit", -1);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
@@ -266,6 +283,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(ww, wh); // Set OpenGL window size.
     glutInitWindowPosition(100, 100); // Set position of OpenGL window upper-left corner.
     glutCreateWindow("CG Project"); // Create OpenGL window with title.
+    clearScene();
     glutDisplayFunc(drawScene); // Register display routine.
     setup(); // Register reshape routine.
     glutKeyboardFunc(keyInput); // Register keyboard routine.

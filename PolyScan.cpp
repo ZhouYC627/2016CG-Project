@@ -16,13 +16,13 @@ struct AET{
 
 
 
-void set_pixel(int x, int y);
+//void setPixel(int x, int y);
 
 void HorizonEdgeFill(Point polypoints[], double k0, int num_line){
     for(int i = 0; i < num_line; i++){
         if(polypoints[i].b == polypoints[(i+1)%num_line].b)
             for(double x = polypoints[i].x; x < polypoints[(i+1)%num_line].x; x++)
-                set_pixel(x, k0*x + polypoints[i].b);
+                setPixel(x, k0*x + polypoints[i].b);
     }
 }
 
@@ -88,7 +88,7 @@ void FillAetScanLine(list<AET> &aet, int y, double k0){
         double x = (*it).x;
         it++;
         for(; x < (*(it)).x; x++){
-            set_pixel(x, k0*x+y);
+            setPixel(x, k0*x+y);
         }
         it++;
     }
@@ -114,23 +114,22 @@ void ProcessPolyScan(vector<list<AET>> &Net, double k0, int ymax, int ymin){
     }
 }
 
-void PolyScan(string file, double k0){
+void PolyScan(Point polypoints[], int num_line, double k0){
     /*
      ifstream in_file(file, ios::in);
      if(!in_file){
      cout<<"Something wrong when opening the file!"<<endl;
      exit(-1);
      }
-     */
-    
-    int num_line = 0;
+    int num_line = points.size();
     //in_file>>num_line;
     
     Point polypoints[num_line];
-    /*for(int i = 0; i < num_line; i++){
-     in_file>>polypoints[i].x;
-     in_file>>polypoints[i].y;
-     }*/
+    for(int i = 0; i < num_line; i++){
+        polypoints[i].x = points[i].x;
+        polypoints[i].y = points[i].y;
+    }
+    */
     
     for(int i = 0; i < num_line; i++){
         polypoints[i].b = polypoints[i].y - k0 * polypoints[i].x;
@@ -156,14 +155,14 @@ void init(void){
     //设置背景颜色
     glClearColor(1, 1, 1, 1);
 }
-
-void set_pixel(int x, int y){
+/*
+void setPixel(int x, int y){
     glPointSize(2);
     glBegin(GL_POINTS);
     glVertex2i(x, y);
     glEnd();
 }
-
+*/
 void ChangeSize(GLsizei w, GLsizei h){
     if(h == 0){
         h = 1;
@@ -199,7 +198,7 @@ void display(void){
     
     glColor3f(0, 0, 0.5);
     
-    PolyScan("/Users/mac/Desktop/3.txt", 0.5);
+    //PolyScan("/Users/mac/Desktop/3.txt", 0.5);
     
     glFlush();
 }

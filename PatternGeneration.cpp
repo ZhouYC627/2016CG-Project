@@ -6,17 +6,14 @@
 //  Copyright © 2016 njucs. All rights reserved.
 //
 
-#include <iostream>
-#include <cmath>
-#include <algorithm>
-#include <GLUT/GLUT.h>
+#include "common.h"
 
-using namespace std;
 GLubyte colorBlack[3] = {0, 0, 0};
 
 void setPixel(int x, int y)
 {
-    glColor3f(colorBlack[0], colorBlack[1], colorBlack[2]); //Set pixel to black
+    //glColor3f(colorBlack[0], colorBlack[1], colorBlack[2]); //Set pixel to black
+    glPointSize(2);
     glBegin(GL_POINTS);
     glVertex2i(x, y); //Set pixel coordinates
     glEnd();
