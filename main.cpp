@@ -11,7 +11,7 @@
 #include "common.h"
 #include "Graph.h"
 #include "PatternGeneration.h"
-#include "PolyScan.h"
+//#include "PolyScan.h"
 
 
 int ww = 600, wh = 600;
@@ -19,7 +19,7 @@ int xi, yi, xf, yf;
 int dragX, drayY;
 bool firstClick = true;
 vector<Point> polyPoints;
-vector<Graph> graphs;
+vector<Graph*> graphs;
 int dragObject, dragBeginX, dragBeginY;
 using namespace std;
 
@@ -27,8 +27,41 @@ using namespace std;
 //Calls Bresenham function when the mouse has traced a line
 bool drawLine = false;
 int mode = 0;
+
+void clearScene(){
+    glClearColor(0.3, 0.6, 0.4, 1.0); // Set foreground color
+    glColor3f(0.2, 0.3, 0.3); // Clear screen to background color.
+    glClear(GL_COLOR_BUFFER_BIT);   //Flush created objects to the screen, i.e., force rendering.
+}
+
+
+void addGraph(){
+    switch (mode) {
+        case LINE:{
+            Line *line = new Line(xi, yi, xf, yf);
+            graphs.push_back(line);
+            break;
+        }
+        case CIRCLE:{
+            Circle *c = new Circle(sqrt(pow(xi-xf, 2) + pow(yi-yf, 2)), xi, yi);
+            graphs.push_back(c);
+            break;
+        }
+        case ELLIPSE:{
+            Ellipse *e = new Ellipse(xi, yi, abs(xi-xf), abs(yi-yf));
+            graphs.push_back(e);
+            break;
+        }
+        default:
+            break;
+    }
+
+}
 void mouse(int btn, int state, int x, int y)
 {
+    Point now;
+    now.x = x;
+    now.y = wh - y;
     if( btn == GLUT_LEFT_BUTTON && state == GLUT_UP ) {
         //simple pattern: 2 clicks
         if ((mode==LINE) ||(mode==ELLIPSE) || (mode==CIRCLE)){
@@ -45,39 +78,22 @@ void mouse(int btn, int state, int x, int y)
                 drawLine = true;
                 glutPostRedisplay();
             }
-            switch (mode) {
-                case LINE:{
-                    Line line(xi, yi, xf, yf);
-                    graphs.push_back(line);
-                    break;
-                }
-                case CIRCLE:{
-                    Circle c(sqrt(pow(xi-xf, 2) + pow(yi-yf, 2)), xi, yi);
-                    graphs.push_back(c);
-                    break;
-                }
-                case ELLIPSE:{
-                    Ellipse e(xi, yi, abs(xi-xf), abs(yi-yf));
-                    graphs.push_back(e);
-                    break;
-                }
-                default:
-                    break;
+            if (drawLine){
+                addGraph();
             }
         //more than 2 clicks
         }else if (mode == POLY){
-            Point now;
-            now.x = x;
-            now.y = wh - y;
             if (polyPoints.empty()){
                 polyPoints.push_back(now);
             }else{
                 Point lastPoint = polyPoints.back();
                 if ((abs(now.x-polyPoints[0].x)+abs(now.y-polyPoints[0].y))<10){
                     cout<<"Draw Poly!"<<endl;
-                    PolyScan(&polyPoints[0], (int)polyPoints.size(), 0.5);
-                    Poly p;
-                    p.polypoints = polyPoints;
+                    //PolyScan(&polyPoints[0], (int)polyPoints.size(), 0.5);
+                    Poly *p = new Poly;
+                    p->polypoints = polyPoints;
+                    p->draw();
+                    graphs.push_back(p);
                     polyPoints.clear();
                 }else{
                     bresenham(lastPoint.x, lastPoint.y, now.x, now.y);
@@ -91,12 +107,13 @@ void mouse(int btn, int state, int x, int y)
     }else
     if( btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN ) {
         if (mode == DRAG){
-            Point p{x, y};
+            dragObject = -1;
             for (int i = 0; i<graphs.size();i++){
-                if (graphs[i].ptInGraph(p)){
+                if (graphs[i]->ptInGraph(now)){
                     dragObject = i;
-                    dragBeginX = x;
-                    dragBeginY = y;
+                    cout<<"dragobj: "<<dragObject<<endl;
+                    dragBeginX = now.x;
+                    dragBeginY = now.y;
                 }
             }
         }
@@ -104,9 +121,11 @@ void mouse(int btn, int state, int x, int y)
 }
 
 void motion(int x, int y){
-    if (mode == DRAG){
+    y = wh -y;
+    if (mode == DRAG && dragObject>=0){
         //cout<<"drag "<<x-dragBeginX<<" "<<y-dragBeginY<<endl;
-        graphs[dragObject].move(x-dragBeginX, y-dragBeginY);
+        clearScene();
+        graphs[dragObject]->move(x-dragBeginX, y-dragBeginY);
         dragBeginX = x;
         dragBeginY = y;
         glutPostRedisplay();
@@ -239,16 +258,14 @@ void Fill(int startX,int startY,int r,int g,int b){
 }
 */
 
-void clearScene(){
-    glClearColor(0.3, 0.6, 0.4, 1.0); // Set foreground color
-    glColor3f(0.2, 0.3, 0.3); // Clear screen to background color.
-    glClear(GL_COLOR_BUFFER_BIT);   //Flush created objects to the screen, i.e., force rendering.
-
-}
 
 void drawAllGraphs(){
-    for(auto &g: graphs){
+    /*for(auto &g: graphs){
         cout<<g.gType<<endl;
+        g.draw();
+    }*/
+    for (int i =0; i<graphs.size(); i++){
+        graphs[i]->draw();
     }
 }
 
@@ -256,8 +273,9 @@ void drawAllGraphs(){
 void drawScene(void)
 {
     glFlush();
-    double rx, ry;
-    switch (mode) {
+    /* 
+     double rx, ry;
+     switch (mode) {
         case LINE:
             if( drawLine ){
                 bresenham(xi, yi, xf, yf);
@@ -290,6 +308,16 @@ void drawScene(void)
             break;
         default:
             break;
+    }*/
+    drawAllGraphs();
+    switch (mode) {
+        case CLEAR:
+            
+            //clearScene();
+            break;
+            
+        default:
+            break;
     }
     glFlush();
 }
@@ -301,6 +329,12 @@ void rightBottonMenu(int value){
             mode = value;
             break;
         case CLEAR:
+            cout<<"clear"<<endl;
+            for (int i=0; i<graphs.size(); i++) {
+                delete graphs[i];
+            }
+            graphs.clear();
+            firstClick = true;
             clearScene();
             glFlush();
             break;
@@ -311,14 +345,17 @@ void rightBottonMenu(int value){
     }
 }
 void createGLUTMenus(){
-    int menu;
+    int menu, submenu;
+    submenu = glutCreateMenu(rightBottonMenu);
+    glutAddMenuEntry("Drag", DRAG);
+    glutAddMenuEntry("Rotate", ROTATE);
     menu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Line", LINE);
     glutAddMenuEntry("Ellipse", ELLIPSE);
     glutAddMenuEntry("Circle", CIRCLE);
     glutAddMenuEntry("Poly", POLY);
     glutAddMenuEntry("Fill", FILL);
-    glutAddMenuEntry("Drag", DRAG);
+    glutAddSubMenu("Edit", submenu);
     glutAddMenuEntry("Clear", CLEAR);
     glutAddMenuEntry("Exit", EXIT);
     glutAttachMenu(GLUT_RIGHT_BUTTON);

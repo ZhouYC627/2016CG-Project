@@ -16,7 +16,8 @@ public:
     int gType;
     virtual bool ptInGraph(Point);
     virtual void move(int , int);
-    virtual void draw();
+    virtual void draw()=0;
+    virtual ~Graph();
 };
 
 class Poly: public Graph{
@@ -25,6 +26,7 @@ public:
     vector<Point> polypoints;
     bool ptInGraph(Point);
     void move(int , int);
+    void draw();
 };
 
 class Line: public Graph{
@@ -33,6 +35,7 @@ public:
     Point end;
     Line(int x1, int y1, int x2, int y2);
     void draw();
+    void move(int , int);
     bool ptInGraph(Point);
 };
 
@@ -41,6 +44,8 @@ public:
     Point ctrPoint;
     int radius;
     Circle(int r, int x, int y);
+    void draw();
+    void move(int , int);
     bool ptInGraph(Point);
 };
 
@@ -49,6 +54,8 @@ public:
     Point ctrPoint;
     int rx, ry;
     Ellipse(int x, int y, int rx, int ry);
+    void draw();
+    void move(int , int);
     bool ptInGraph(Point);
 };
 #endif /* Graph_h */

@@ -14,39 +14,13 @@ void Translation(Point polypoints[], int num_line, double k0, int tx, int ty){
     for(int i = 0; i < num_line; i++){
         polypoints[i].x += tx;
         polypoints[i].y += ty;
+        //cout<<"trans poly: "<<polypoints[i].x<<","<<polypoints[i].y<<endl;
     }
-    
-    int ymax = polypoints[0].y, ymin = polypoints[0].y;
-    for(int i = 1; i < num_line; i++){
-        if(ymax < polypoints[i].y)
-            ymax = polypoints[i].y;
-        if(ymin > polypoints[i].y)
-            ymin = polypoints[i].y;
-    }
-    
-    vector<list<AET>> Net(ymax - ymin + 1);
-    
-    InitPolyScan(polypoints, Net, num_line, ymax, ymin);
-    HorizonEdgeFill(polypoints, k0, num_line);
-    ProcessPolyScan(Net, k0, ymax, ymin);
+    cout<<endl;
 }
 
-/*
-void Rotate(string file, double angle, int tx, int ty){
-    ifstream in_file(file, ios::in);
-    if(!in_file){
-        cout<<"Something wrong when opening the file!"<<endl;
-        exit(-1);
-    }
-    
-    int num_line = 0;
-    in_file>>num_line;
-    
-    Point polypoints_t[num_line];
-    for(int i = 0; i < num_line; i++){
-        in_file>>polypoints_t[i].x;
-        in_file>>polypoints_t[i].y;
-    }
+
+void Rotate(Point polypoints_t[], int num_line, double angle, int tx, int ty){
     
     for(int i = 0; i < num_line; i++){
         polypoints_t[i].x -= tx;
@@ -65,26 +39,12 @@ void Rotate(string file, double angle, int tx, int ty){
         polypoints[i].y += ty;
     }
     
-    int ymax = polypoints[0].y, ymin = polypoints[0].y;
-    for(int i = 1; i < num_line; i++){
-        if(ymax < polypoints[i].y)
-            ymax = polypoints[i].y;
-        if(ymin > polypoints[i].y)
-            ymin = polypoints[i].y;
-    }
     
     for(int i = 1; i < num_line; i++){
         cout<<polypoints[i].x<<" "<<polypoints[i].y<<endl;
     }
-    
-    vector<list<AET>> Net(ymax - ymin + 1);
-    
-    InitPolyScan(polypoints, Net, num_line, ymax, ymin);
-    HorizonEdgeFill(polypoints, num_line);
-    ProcessPolyScan(Net, ymax, ymin);
-    
 }
-
+/*
 void Zoom(string file, double scale_x, double scale_y){
     ifstream in_file(file, ios::in);
     if(!in_file){

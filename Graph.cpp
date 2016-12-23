@@ -9,15 +9,19 @@
 
 #include "Graph.h"
 #include "translation.h"
+#include "PatternGeneration.h"
+#include "PolyScan.h"
 
 bool Graph::ptInGraph(Point p){
     return false;
 }
-
+Graph::~Graph(){
+    
+}
 void Graph::move(int x, int y){
 }
-void Graph::draw(){
-}
+//void Graph::draw(){
+//}
 
 bool Poly::ptInGraph(Point p){
     int nCross = 0;
@@ -42,6 +46,7 @@ bool Poly::ptInGraph(Point p){
         if (x > p.x)
             nCross++;
     }
+    cout<<"pt in poly: "<< nCross<<endl;
     return (nCross % 2 == 1);
 }
 
@@ -49,13 +54,20 @@ void Poly::move(int x, int y){
     Translation(&polypoints[0], (int)polypoints.size(), 0.5, x, y);
 }
 
+void Poly::draw(){
+    PolyScan(&polypoints[0], (int)polypoints.size(), 0.5);
+}
+
 bool Line::ptInGraph(Point p){
-    int k = (begin.y - p.y)*(end.x - p.x)
-    - (end.y- p.y)*(begin.x - p.x);
-    return abs(k)<10;
+    int db = sqrt(pow(begin.x-p.x, 2) + pow(begin.y-p.y, 2));
+    int de = sqrt(pow(end.x-p.x, 2) + pow(end.y-p.y, 2));
+    int length = sqrt(pow(begin.x-end.x, 2) + pow(begin.y-end.y, 2));
+    //cout<<"ptInLine:"<<abs(db+de-length)<<endl;
+    return abs(db+de-length)<2;
 }
 void Line::draw(){
-    
+    bresenham(begin.x, begin.y, end.x, end.y);
+    printf("Line: %d,%d  %d,%d", begin.x, begin.y, end.x, end.y);
 }
 
 Line::Line(int x1, int y1, int x2, int y2){
@@ -65,12 +77,25 @@ Line::Line(int x1, int y1, int x2, int y2){
     end.x = x2;
     end.y = y2;
 }
+void Line::move(int x, int y){
+    begin.x +=x;
+    begin.y += y;
+    end.x +=x;
+    end.y += y;
+}
 
 bool Circle::ptInGraph(Point p){
     double d = sqrt(pow(p.x - ctrPoint.x, 2) + pow(p.y - ctrPoint.y, 2));
-    return d<radius;
+    return fabs(d-radius)<3;
 }
 
+void Circle::draw(){
+    DrawCircle(radius, ctrPoint.x, ctrPoint.y);
+}
+void Circle::move(int x, int y){
+    ctrPoint.x += x;
+    ctrPoint.y += y;
+}
 Circle::Circle(int r, int x, int y){
     radius = r;
     ctrPoint.x = x;
@@ -85,9 +110,18 @@ Ellipse::Ellipse(int x, int y, int rx, int ry){
     this->ry = ry;
 }
 
+void Ellipse::move(int x, int y){
+    ctrPoint.x += x;
+    ctrPoint.y += y;
+}
+
+void Ellipse::draw(){
+    DrawEllipse(ctrPoint.x, ctrPoint.y, rx, ry, 50);
+}
 bool Ellipse::ptInGraph(Point p){
-    double f = pow(p.x, 2)/pow(rx, 2) + pow(p.y, 2)/pow(ry, 2);
-    return f<=1;
+    double f = pow(p.x-ctrPoint.x, 2)/pow(rx, 2) + pow(p.y-ctrPoint.y, 2)/pow(ry, 2);
+    cout<<"ptinell: "<<f<<endl;
+    return fabs(f-1)<0.1;
 }
 
 
