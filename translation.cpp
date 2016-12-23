@@ -16,7 +16,7 @@ void Translation(Point polypoints[], int num_line, double k0, int tx, int ty){
         polypoints[i].y += ty;
         //cout<<"trans poly: "<<polypoints[i].x<<","<<polypoints[i].y<<endl;
     }
-    cout<<endl;
+    //cout<<endl;
 }
 
 
@@ -30,19 +30,20 @@ void Rotate(Point polypoints_t[], int num_line, double angle, int tx, int ty){
     Point polypoints[num_line];
     
     for(int i = 0; i < num_line; i++){
-        polypoints[i].x = polypoints_t[i].x*cos(angle) - polypoints_t[i].y*sin(angle);
-        polypoints[i].y = polypoints_t[i].x*sin(angle) + polypoints_t[i].y*cos(angle);
+        polypoints[i].x = round(polypoints_t[i].x*cos(angle)) - round(polypoints_t[i].y*sin(angle));
+        polypoints[i].y = round(polypoints_t[i].x*sin(angle)) + round(polypoints_t[i].y*cos(angle));
     }
     
     for(int i = 0; i < num_line; i++){
-        polypoints[i].x += tx;
-        polypoints[i].y += ty;
+        polypoints_t[i].x = polypoints[i].x + tx;
+        polypoints_t[i].y = polypoints[i].y + ty;
     }
     
-    
+    /*
     for(int i = 1; i < num_line; i++){
-        cout<<polypoints[i].x<<" "<<polypoints[i].y<<endl;
+        cout<<polypoints_t[i].x<<" "<<polypoints_t[i].y<<endl;
     }
+    */
 }
 /*
 void Zoom(string file, double scale_x, double scale_y){

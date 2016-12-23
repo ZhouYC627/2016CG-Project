@@ -20,7 +20,9 @@ int dragX, drayY;
 bool firstClick = true;
 vector<Point> polyPoints;
 vector<Graph*> graphs;
-int dragObject, dragBeginX, dragBeginY;
+int editObject, editBeginX, editBeginY;
+double lastAngle;
+
 using namespace std;
 
 
@@ -106,14 +108,15 @@ void mouse(int btn, int state, int x, int y)
         
     }else
     if( btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN ) {
-        if (mode == DRAG){
-            dragObject = -1;
+        if (mode == DRAG || mode == ROTATE){
+            editObject = -1;
             for (int i = 0; i<graphs.size();i++){
                 if (graphs[i]->ptInGraph(now)){
-                    dragObject = i;
-                    cout<<"dragobj: "<<dragObject<<endl;
-                    dragBeginX = now.x;
-                    dragBeginY = now.y;
+                    editObject = i;
+                    cout<<"editobj: "<<editObject<<endl;
+                    editBeginX = now.x;
+                    editBeginY = now.y;
+                    lastAngle = 0;
                 }
             }
         }
@@ -121,13 +124,21 @@ void mouse(int btn, int state, int x, int y)
 }
 
 void motion(int x, int y){
-    y = wh -y;
-    if (mode == DRAG && dragObject>=0){
+    Point now{x,wh -y};
+    if (mode == DRAG && editObject>=0){
         //cout<<"drag "<<x-dragBeginX<<" "<<y-dragBeginY<<endl;
         clearScene();
-        graphs[dragObject]->move(x-dragBeginX, y-dragBeginY);
-        dragBeginX = x;
-        dragBeginY = y;
+        graphs[editObject]->move(now.x-editBeginX, now.y-editBeginY);
+        editBeginX = now.x;
+        editBeginY = now.y;
+        glutPostRedisplay();
+    }
+    if (mode == ROTATE && editObject>=0){
+        clearScene();
+        double angle = atan2(x-editBeginX, y-editBeginY);
+        cout<<angle<<"r ";
+        graphs[editObject]->rotate(angle-lastAngle, editBeginX, editBeginY);
+        lastAngle = angle;
         glutPostRedisplay();
     }
 }
@@ -323,9 +334,10 @@ void drawScene(void)
 }
 void rightBottonMenu(int value){
     switch (value) {
-        case LINE:case ELLIPSE:
-        case CIRCLE:case POLY:
-        case FILL:case DRAG:
+        case LINE:    case ELLIPSE:
+        case CIRCLE:  case POLY:
+        case FILL:    case DRAG:
+        case ROTATE:
             mode = value;
             break;
         case CLEAR:

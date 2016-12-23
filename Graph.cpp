@@ -20,8 +20,8 @@ Graph::~Graph(){
 }
 void Graph::move(int x, int y){
 }
-//void Graph::draw(){
-//}
+void Graph::rotate(double angle, int x, int y){
+}
 
 bool Poly::ptInGraph(Point p){
     int nCross = 0;
@@ -56,6 +56,9 @@ void Poly::move(int x, int y){
 
 void Poly::draw(){
     PolyScan(&polypoints[0], (int)polypoints.size(), 0.5);
+}
+void Poly::rotate(double angle, int x, int y){
+    Rotate(&polypoints[0], (int)polypoints.size(), angle, x, y);
 }
 
 bool Line::ptInGraph(Point p){

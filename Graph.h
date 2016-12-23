@@ -17,6 +17,7 @@ public:
     virtual bool ptInGraph(Point);
     virtual void move(int , int);
     virtual void draw()=0;
+    virtual void rotate(double angle, int x, int y);
     virtual ~Graph();
 };
 
@@ -27,6 +28,7 @@ public:
     bool ptInGraph(Point);
     void move(int , int);
     void draw();
+    void rotate(double angle, int x, int y);
 };
 
 class Line: public Graph{
