@@ -8,9 +8,15 @@
 
 
 #include "Graph.h"
+#include "translation.h"
 
 bool Graph::ptInGraph(Point p){
     return false;
+}
+
+void Graph::move(int x, int y){
+}
+void Graph::draw(){
 }
 
 bool Poly::ptInGraph(Point p){
@@ -39,10 +45,17 @@ bool Poly::ptInGraph(Point p){
     return (nCross % 2 == 1);
 }
 
+void Poly::move(int x, int y){
+    Translation(&polypoints[0], (int)polypoints.size(), 0.5, x, y);
+}
+
 bool Line::ptInGraph(Point p){
     int k = (begin.y - p.y)*(end.x - p.x)
     - (end.y- p.y)*(begin.x - p.x);
     return abs(k)<10;
+}
+void Line::draw(){
+    
 }
 
 Line::Line(int x1, int y1, int x2, int y2){

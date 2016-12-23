@@ -16,9 +16,11 @@
 
 int ww = 600, wh = 600;
 int xi, yi, xf, yf;
+int dragX, drayY;
 bool firstClick = true;
 vector<Point> polyPoints;
 vector<Graph> graphs;
+int dragObject, dragBeginX, dragBeginY;
 using namespace std;
 
 
@@ -85,11 +87,30 @@ void mouse(int btn, int state, int x, int y)
             }
             //polyPoints.push_back(Point{x, wh-y});
         }
+        
+    }else
+    if( btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN ) {
+        if (mode == DRAG){
+            Point p{x, y};
+            for (int i = 0; i<graphs.size();i++){
+                if (graphs[i].ptInGraph(p)){
+                    dragObject = i;
+                    dragBeginX = x;
+                    dragBeginY = y;
+                }
+            }
+        }
     }
 }
 
 void motion(int x, int y){
-    
+    if (mode == DRAG){
+        //cout<<"drag "<<x-dragBeginX<<" "<<y-dragBeginY<<endl;
+        graphs[dragObject].move(x-dragBeginX, y-dragBeginY);
+        dragBeginX = x;
+        dragBeginY = y;
+        glutPostRedisplay();
+    }
 }
 // Keyboard input processing routine.
 void keyInput(unsigned char key, int x, int y)
@@ -225,6 +246,12 @@ void clearScene(){
 
 }
 
+void drawAllGraphs(){
+    for(auto &g: graphs){
+        cout<<g.gType<<endl;
+    }
+}
+
 // Drawing (display) routine.
 void drawScene(void)
 {
@@ -255,6 +282,8 @@ void drawScene(void)
             break;
         case POLY:
             break;
+        case DRAG:
+            break;
         case CLEAR:
             firstClick = true;
             clearScene();
@@ -268,7 +297,7 @@ void rightBottonMenu(int value){
     switch (value) {
         case LINE:case ELLIPSE:
         case CIRCLE:case POLY:
-        case FILL:
+        case FILL:case DRAG:
             mode = value;
             break;
         case CLEAR:
@@ -307,6 +336,7 @@ void setup()
 // Main routine: defines window properties, creates window, registers callback routines and begins processing.
 int main(int argc, char **argv)
 {
+    cout<<"Start!"<<endl;
     glutInit(&argc, argv); // Initialize GLUT.
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // Set display mode as single-buffered and RGB color.
     glutInitWindowSize(ww, wh); // Set OpenGL window size.

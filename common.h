@@ -15,9 +15,16 @@
 #include <algorithm>
 #include <cmath>
 #include <stack>
+#include <math.h>
 #include <GLUT/GLUT.h>
 
 using namespace std;
+
+struct AET{
+    double x;
+    double dx;
+    int bmax;
+};
 
 struct Point{
     int x;
@@ -26,5 +33,6 @@ struct Point{
 };
 void setPixel(int x, int y);
 
+enum MODE {LINE = 0, ELLIPSE, CIRCLE, POLY, FILL, DRAG, ROTATE, CLEAR, EXIT};
 
 #endif /* common_h */
