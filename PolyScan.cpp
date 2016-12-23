@@ -8,14 +8,6 @@
 
 #include "common.h"
 
-struct AET{
-    double x;
-    double dx;
-    int bmax;
-};
-
-
-
 //void setPixel(int x, int y);
 
 void HorizonEdgeFill(Point polypoints[], double k0, int num_line){

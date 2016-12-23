@@ -9,15 +9,18 @@
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 #include "common.h"
+#include "Graph.h"
 #include "PatternGeneration.h"
+#include "PolyScan.h"
+
 
 int ww = 600, wh = 600;
 int xi, yi, xf, yf;
 bool firstClick = true;
 vector<Point> polyPoints;
+vector<Graph> graphs;
 using namespace std;
 
-void PolyScan(Point polypoints[], int num_line, double k0);
 
 //Calls Bresenham function when the mouse has traced a line
 bool drawLine = false;
@@ -26,7 +29,7 @@ void mouse(int btn, int state, int x, int y)
 {
     if( btn == GLUT_LEFT_BUTTON && state == GLUT_UP ) {
         //simple pattern: 2 clicks
-        if (mode<=2){
+        if ((mode==LINE) ||(mode==ELLIPSE) || (mode==CIRCLE)){
             if (firstClick) {
                 xi = x;
                 yi = (wh - y);
@@ -40,7 +43,27 @@ void mouse(int btn, int state, int x, int y)
                 drawLine = true;
                 glutPostRedisplay();
             }
-        }else if (mode == 4){
+            switch (mode) {
+                case LINE:{
+                    Line line(xi, yi, xf, yf);
+                    graphs.push_back(line);
+                    break;
+                }
+                case CIRCLE:{
+                    Circle c(sqrt(pow(xi-xf, 2) + pow(yi-yf, 2)), xi, yi);
+                    graphs.push_back(c);
+                    break;
+                }
+                case ELLIPSE:{
+                    Ellipse e(xi, yi, abs(xi-xf), abs(yi-yf));
+                    graphs.push_back(e);
+                    break;
+                }
+                default:
+                    break;
+            }
+        //more than 2 clicks
+        }else if (mode == POLY){
             Point now;
             now.x = x;
             now.y = wh - y;
@@ -48,12 +71,14 @@ void mouse(int btn, int state, int x, int y)
                 polyPoints.push_back(now);
             }else{
                 Point lastPoint = polyPoints.back();
-                bresenham(lastPoint.x, lastPoint.y, now.x, now.y);
-                if ((abs(now.x-polyPoints[0].x)+abs(now.y-polyPoints[0].y))<20){
+                if ((abs(now.x-polyPoints[0].x)+abs(now.y-polyPoints[0].y))<10){
                     cout<<"Draw Poly!"<<endl;
                     PolyScan(&polyPoints[0], (int)polyPoints.size(), 0.5);
+                    Poly p;
+                    p.polypoints = polyPoints;
                     polyPoints.clear();
                 }else{
+                    bresenham(lastPoint.x, lastPoint.y, now.x, now.y);
                     polyPoints.push_back(now);
                 }
                 glutPostRedisplay();
@@ -63,6 +88,9 @@ void mouse(int btn, int state, int x, int y)
     }
 }
 
+void motion(int x, int y){
+    
+}
 // Keyboard input processing routine.
 void keyInput(unsigned char key, int x, int y)
 {
@@ -203,31 +231,31 @@ void drawScene(void)
     glFlush();
     double rx, ry;
     switch (mode) {
-        case 0:
+        case LINE:
             if( drawLine ){
                 bresenham(xi, yi, xf, yf);
             }
             break;
-        case 1:
+        case ELLIPSE:
             if( drawLine ){
                 rx = fabs(xi-xf);
                 ry = fabs(yi-yf);
                 DrawEllipse(xi, yi, rx, ry, 50);
             }
             break;
-        case 2:
+        case CIRCLE:
             if( drawLine ){
                 DrawCircle(sqrt(pow(xi-xf, 2) + pow(yi-yf, 2)), xi, yi);
             }
             break;
-        case 3:
+        case FILL:
             //Fill(xi, yi, 50, 50, 50);
             firstClick = true;
             drawLine = true;
             break;
-        case 4:
+        case POLY:
             break;
-        case 100:
+        case CLEAR:
             firstClick = true;
             clearScene();
             break;
@@ -238,16 +266,16 @@ void drawScene(void)
 }
 void rightBottonMenu(int value){
     switch (value) {
-        case 0:case 1:
-        case 2:case 3:
-        case 4:
+        case LINE:case ELLIPSE:
+        case CIRCLE:case POLY:
+        case FILL:
             mode = value;
             break;
-        case 100:
+        case CLEAR:
             clearScene();
             glFlush();
             break;
-        case -1:
+        case EXIT:
             exit(0);
         default:
             break;
@@ -256,13 +284,14 @@ void rightBottonMenu(int value){
 void createGLUTMenus(){
     int menu;
     menu = glutCreateMenu(rightBottonMenu);
-    glutAddMenuEntry("Line", 0);
-    glutAddMenuEntry("Ellipse", 1);
-    glutAddMenuEntry("Circle", 2);
-    glutAddMenuEntry("Fill", 3);
-    glutAddMenuEntry("Poly", 4);
-    glutAddMenuEntry("Clear", 100);
-    glutAddMenuEntry("Exit", -1);
+    glutAddMenuEntry("Line", LINE);
+    glutAddMenuEntry("Ellipse", ELLIPSE);
+    glutAddMenuEntry("Circle", CIRCLE);
+    glutAddMenuEntry("Poly", POLY);
+    glutAddMenuEntry("Fill", FILL);
+    glutAddMenuEntry("Drag", DRAG);
+    glutAddMenuEntry("Clear", CLEAR);
+    glutAddMenuEntry("Exit", EXIT);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 // OpenGL window reshape routine.
@@ -288,6 +317,7 @@ int main(int argc, char **argv)
     setup(); // Register reshape routine.
     glutKeyboardFunc(keyInput); // Register keyboard routine.
     glutMouseFunc(mouse); // Begin processing.
+    glutMotionFunc(motion);
     createGLUTMenus();
     glutMainLoop();
     return 0;
