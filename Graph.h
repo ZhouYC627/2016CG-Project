@@ -18,6 +18,7 @@ public:
     virtual void move(int , int);
     virtual void draw()=0;
     virtual void rotate(double angle, int x, int y);
+    virtual void zoom(double, double)=0;
     virtual ~Graph();
 };
 
@@ -28,6 +29,7 @@ public:
     bool ptInGraph(Point);
     void move(int , int);
     void draw();
+    void zoom(double, double);
     void rotate(double angle, int x, int y);
 };
 
@@ -38,6 +40,7 @@ public:
     Line(int x1, int y1, int x2, int y2);
     void draw();
     void move(int , int);
+    void zoom(double, double);
     bool ptInGraph(Point);
 };
 
@@ -48,6 +51,7 @@ public:
     Circle(int r, int x, int y);
     void draw();
     void move(int , int);
+    void zoom(double, double);
     bool ptInGraph(Point);
 };
 
@@ -58,6 +62,7 @@ public:
     Ellipse(int x, int y, int rx, int ry);
     void draw();
     void move(int , int);
+    void zoom(double, double);
     bool ptInGraph(Point);
 };
 #endif /* Graph_h */

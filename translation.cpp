@@ -45,43 +45,17 @@ void Rotate(Point polypoints_t[], int num_line, double angle, int tx, int ty){
     }
     */
 }
-/*
-void Zoom(string file, double scale_x, double scale_y){
-    ifstream in_file(file, ios::in);
-    if(!in_file){
-        cout<<"Something wrong when opening the file!"<<endl;
-        exit(-1);
-    }
-    
-    int num_line = 0;
-    in_file>>num_line;
-    
-    Point polypoints[num_line];
-    for(int i = 0; i < num_line; i++){
-        in_file>>polypoints[i].x;
-        in_file>>polypoints[i].y;
-    }
-    
+
+void Zoom(Point polypoints[], int num_line, double scale_x, double scale_y){
+        
     for(int i = 0; i < num_line; i++){
         polypoints[i].x *= scale_x;
         polypoints[i].y *= scale_y;
     }
     
-    int ymax = polypoints[0].y, ymin = polypoints[0].y;
-    for(int i = 1; i < num_line; i++){
-        if(ymax < polypoints[i].y)
-            ymax = polypoints[i].y;
-        if(ymin > polypoints[i].y)
-            ymin = polypoints[i].y;
-    }
-    
-    vector<list<AET>> Net(ymax - ymin + 1);
-    
-    InitPolyScan(polypoints, Net, num_line, ymax, ymin);
-    HorizonEdgeFill(polypoints, num_line);
-    ProcessPolyScan(Net, ymax, ymin);
-}
 
+}
+/*
 void Reflect(string file, double a, double b, double c){
     ifstream in_file(file, ios::in);
     if(!in_file){
@@ -178,7 +152,7 @@ void display(void){
     
     glColor3f(0, 0, 0.5);
     
-    string file = "/Users/mac/Desktop/5.txt";
+    //string file = "/Users/mac/Desktop/5.txt";
     //PolyScan(file);
     //Translate(file, 20, 20);
     //Rotate(file, 3, 0, 0);

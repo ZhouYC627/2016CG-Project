@@ -18,6 +18,8 @@
 #include <math.h>
 #include <GLUT/GLUT.h>
 
+#define WW 600
+#define WH 600
 using namespace std;
 
 struct AET{
@@ -33,6 +35,6 @@ struct Point{
 };
 void setPixel(int x, int y);
 
-enum MODE {LINE = 0, ELLIPSE, CIRCLE, POLY, FILL, DRAG, ROTATE, CLEAR, EXIT};
+enum MODE {LINE = 0, ELLIPSE, CIRCLE, POLY, FILL, DRAG, ROTATE, ZOOM, CLEAR, EXIT};
 
 #endif /* common_h */

@@ -60,6 +60,16 @@ void Poly::draw(){
 void Poly::rotate(double angle, int x, int y){
     Rotate(&polypoints[0], (int)polypoints.size(), angle, x, y);
 }
+void Poly::zoom(double scale_x, double scale_y){
+    for(int i = 0; i < polypoints.size(); i++){
+        polypoints[i].x -= WW/2;
+        polypoints[i].y -= WH/2;
+        polypoints[i].x = round(polypoints[i].x*scale_x);
+        polypoints[i].y = round(polypoints[i].y*scale_y);
+        polypoints[i].x += WW/2;
+        polypoints[i].y += WH/2;
+    }
+}
 
 bool Line::ptInGraph(Point p){
     int db = sqrt(pow(begin.x-p.x, 2) + pow(begin.y-p.y, 2));
@@ -70,7 +80,6 @@ bool Line::ptInGraph(Point p){
 }
 void Line::draw(){
     bresenham(begin.x, begin.y, end.x, end.y);
-    printf("Line: %d,%d  %d,%d", begin.x, begin.y, end.x, end.y);
 }
 
 Line::Line(int x1, int y1, int x2, int y2){
@@ -81,10 +90,17 @@ Line::Line(int x1, int y1, int x2, int y2){
     end.y = y2;
 }
 void Line::move(int x, int y){
-    begin.x +=x;
+    begin.x += x;
     begin.y += y;
-    end.x +=x;
+    end.x += x;
     end.y += y;
+}
+void Line::zoom(double scalex, double scaley){
+    double scale = (scaley + scaley)/2;
+    begin.x = round((begin.x-WW/2)*scale) + WW/2;
+    begin.y = round((begin.y-WH/2)*scale) + WH/2;
+    end.x = round((end.x-WW/2)*scale) + WW/2;
+    end.y = round((end.y-WH/2)*scale) + WH/2;
 }
 
 bool Circle::ptInGraph(Point p){
@@ -98,6 +114,11 @@ void Circle::draw(){
 void Circle::move(int x, int y){
     ctrPoint.x += x;
     ctrPoint.y += y;
+}
+void Circle::zoom(double scalex, double scaley){
+    //ctrPoint.x = round((ctrPoint.x-WW/2)*scalex) + WW/2;
+    //ctrPoint.y = round((ctrPoint.y-WH/2)*scaley) + WH/2;
+    radius = round(radius*((scalex+scaley) / 2));
 }
 Circle::Circle(int r, int x, int y){
     radius = r;
@@ -121,9 +142,14 @@ void Ellipse::move(int x, int y){
 void Ellipse::draw(){
     DrawEllipse(ctrPoint.x, ctrPoint.y, rx, ry, 50);
 }
+void Ellipse::zoom(double scalex, double scaley){
+    //ctrPoint.x = round((ctrPoint.x-WW/2)*scalex) + WW/2;
+    //ctrPoint.y = round((ctrPoint.y-WH/2)*scaley) + WH/2;
+    rx = round(rx*scalex);
+    ry = round(ry*scaley);
+}
 bool Ellipse::ptInGraph(Point p){
     double f = pow(p.x-ctrPoint.x, 2)/pow(rx, 2) + pow(p.y-ctrPoint.y, 2)/pow(ry, 2);
-    cout<<"ptinell: "<<f<<endl;
     return fabs(f-1)<0.1;
 }
 

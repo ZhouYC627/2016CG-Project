@@ -14,13 +14,14 @@
 //#include "PolyScan.h"
 
 
-int ww = 600, wh = 600;
+//int WW = 600, WH = 600;
 int xi, yi, xf, yf;
 int dragX, drayY;
 bool firstClick = true;
 vector<Point> polyPoints;
 vector<Graph*> graphs;
 int editObject, editBeginX, editBeginY;
+int lastScaleX, lastScaleY;
 double lastAngle;
 
 using namespace std;
@@ -63,28 +64,28 @@ void mouse(int btn, int state, int x, int y)
 {
     Point now;
     now.x = x;
-    now.y = wh - y;
-    if( btn == GLUT_LEFT_BUTTON && state == GLUT_UP ) {
+    now.y = WH - y;
+    cout<<x<<","<<y<<endl;
+    if( btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN ) {
         //simple pattern: 2 clicks
-        if ((mode==LINE) ||(mode==ELLIPSE) || (mode==CIRCLE)){
-            if (firstClick) {
-                xi = x;
-                yi = (wh - y);
-                firstClick = false;
-                drawLine = false;
-            }
-            else {
-                xf = x;
-                yf = (wh - y);
-                firstClick = true;
-                drawLine = true;
-                glutPostRedisplay();
-            }
-            if (drawLine){
-                addGraph();
-            }
+        if (firstClick) {
+            xi = x;
+            yi = (WH - y);
+            firstClick = false;
+            drawLine = false;
+        }
+        else {
+            xf = x;
+            yf = (WH - y);
+            firstClick = true;
+            drawLine = true;
+        }
+        if (drawLine){
+            addGraph();
+        }
+        
         //more than 2 clicks
-        }else if (mode == POLY){
+        if (mode == POLY){
             if (polyPoints.empty()){
                 polyPoints.push_back(now);
             }else{
@@ -98,17 +99,16 @@ void mouse(int btn, int state, int x, int y)
                     graphs.push_back(p);
                     polyPoints.clear();
                 }else{
-                    bresenham(lastPoint.x, lastPoint.y, now.x, now.y);
+                    Line l(lastPoint.x, lastPoint.y, now.x, now.y);
+                    //bresenham(lastPoint.x, lastPoint.y, now.x, now.y);
+                    l.draw();
                     polyPoints.push_back(now);
+                    firstClick = true;
                 }
-                glutPostRedisplay();
             }
             //polyPoints.push_back(Point{x, wh-y});
         }
-        
-    }else
-    if( btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN ) {
-        if (mode == DRAG || mode == ROTATE){
+        if (mode == DRAG || mode == ROTATE || mode == ZOOM){
             editObject = -1;
             for (int i = 0; i<graphs.size();i++){
                 if (graphs[i]->ptInGraph(now)){
@@ -116,31 +116,51 @@ void mouse(int btn, int state, int x, int y)
                     cout<<"editobj: "<<editObject<<endl;
                     editBeginX = now.x;
                     editBeginY = now.y;
-                    lastAngle = 0;
+                    lastAngle = atan2(now.x-WW/2, now.y-WH/2);
+                    //lastScaleX = 1;
+                    //lastScaleY = 1;
+                    firstClick = false;
                 }
             }
         }
+    }else if (btn == GLUT_LEFT_BUTTON && state == GLUT_UP){
+
     }
+
+    glutPostRedisplay();
 }
 
 void motion(int x, int y){
-    Point now{x,wh -y};
+    
+    Point now{x,WH - y};
     if (mode == DRAG && editObject>=0){
         //cout<<"drag "<<x-dragBeginX<<" "<<y-dragBeginY<<endl;
         clearScene();
         graphs[editObject]->move(now.x-editBeginX, now.y-editBeginY);
         editBeginX = now.x;
         editBeginY = now.y;
-        glutPostRedisplay();
-    }
+    }else
     if (mode == ROTATE && editObject>=0){
         clearScene();
-        double angle = atan2(x-editBeginX, y-editBeginY);
-        cout<<angle<<"r ";
-        graphs[editObject]->rotate(angle-lastAngle, editBeginX, editBeginY);
+        double angle = atan2(x-WW/2, y-WH/2);
+        graphs[editObject]->rotate(angle-lastAngle, WW/2, WH/2);
         lastAngle = angle;
-        glutPostRedisplay();
-    }
+    }else
+    if (mode == ZOOM && editObject>=0 && !firstClick){
+        clearScene();
+        double sx = (double)(now.x-WW/2)/(double)(xf-WW/2);
+        double sy = (double)(now.y-WH/2)/(double)(yf-WH/2);
+        if (sx==0 || sy == 0){
+            return;
+        }
+        printf("zoom: %f,%f\n", sx, sy);
+        graphs[editObject]->zoom(sx, sy);
+        xf = now.x;
+        yf = now.y;
+        //firstClick = true;
+    }else return;
+    glutPostRedisplay();
+
 }
 // Keyboard input processing routine.
 void keyInput(unsigned char key, int x, int y)
@@ -164,117 +184,27 @@ void keyInput(unsigned char key, int x, int y)
     }
     //cout<<key<<endl;
 }
-/*
-struct Point{
-    int x;
-    int y;
-};
-//种子填充算法
- void glPoint(int x,int y,int r,int g,int b){
- glColor3ub (r,g,b);
- glPointSize(1);
- glBegin(GL_POINTS);
- glVertex2i(x,y);
- glEnd();
- glFlush();
- }
-//传入两个颜色的RGB值，比较是否相同，容差为dis
-bool sameColor(int r1,int g1,int b1,int r2,int g2,int b2){
-    //容差度
-    cout<<r1<<g1<<b1<<endl;
-    cout<<r2<<g2<<b2<<endl;
-    system("pause");
-    int dis = 10;
-    if(abs(r1-r2)<=dis&&abs(g1-g2)<=dis&&abs(b1-b2)<=dis){
-        return true;
-    }else{
-        return false;
-    }
-}
 
-void Fill(int startX,int startY,int r,int g,int b){
-    cout<<startX<<startY<<endl;
-    GLubyte iPixel[3];
+void displayCoordinates(){
+    //x轴
+    glBegin(GL_LINES);
+    //glColor3f (0, 0, 0);
+    glVertex2f(-WW, WH/2);
+    glVertex2f(WW, WH/2);
+    glEnd();
     
-    stack<Point> pixelStack;
-    //x,y是给定的种子像素点，rgb就是要填充的颜色的RGB值
-    Point point  = {startX,startY};
-    pixelStack.push(point);
-    int saveX;
-    int xRight,xLeft;
-    int halfWidth = ww/2, halfHeight = wh/2;
-    int x,y;
-    //如果栈不为空
-    while(!pixelStack.empty()){
-        //获取最顶端的元素
-        Point tempPoint=pixelStack.top();
-        //删除最顶端的元素
-        pixelStack.pop();
-        saveX=tempPoint.x;
-        x=tempPoint.x;
-        y=tempPoint.y;
-        glReadPixels(x+halfWidth,y+halfHeight,1,1,GL_RGB,GL_UNSIGNED_BYTE,&iPixel);
-        //如果没有到达右边界，就填充
-        while(!sameColor(iPixel[0],iPixel[1],iPixel[2],colorBlack[0],colorBlack[1],colorBlack[2])){
-            glPoint(x,y,r,g,b);
-            x=x+1;
-            glReadPixels(x+halfWidth,y+halfHeight,1,1,GL_RGB,GL_UNSIGNED_BYTE,&iPixel);
-        }
-        xRight=x-1;
-        x=saveX-1;
-        glReadPixels(x+halfWidth,y+halfWidth,1,1,GL_RGB,GL_UNSIGNED_BYTE,&iPixel);
-        //如果没有到达左边界，就填充
-        while(!sameColor(iPixel[0],iPixel[1],iPixel[2],colorBlack[0],colorBlack[1],colorBlack[2])){
-            glPoint(x,y,r,g,b);
-            x=x-1;
-            glReadPixels(x+halfWidth,y+halfWidth,1,1,GL_RGB,GL_UNSIGNED_BYTE,&iPixel);
-        }
-        //保存左端点
-        xLeft=x+1;
-        //从右边的点开始
-        x=xRight;
-        //检查上端的扫描线
-        y=y+1;
-        while(x>=xLeft){
-            glReadPixels(x+halfWidth,y+halfWidth,1,1,GL_RGB,GL_UNSIGNED_BYTE,&iPixel);
-            if(!sameColor(iPixel[0],iPixel[1],iPixel[2],colorBlack[0],colorBlack[1],colorBlack[2])&&!sameColor(iPixel[0],iPixel[1],iPixel[2],r,g,b)){
-                //如果上方的点不是边界点，直接压入
-                Point p={x,y};
-                pixelStack.push(p);
-                //压入之后停止循环
-                break;
-            }else{
-                x--;
-                glReadPixels(x+halfWidth,y+halfWidth,1,1,GL_RGB,GL_UNSIGNED_BYTE,&iPixel);
-            }
-        }
-        //检查下端的扫描线
-        y=y-2;
-        //从右边的点开始
-        x=xRight;
-        while(x>=xLeft){
-            glReadPixels(x+halfWidth,y+halfWidth,1,1,GL_RGB,GL_UNSIGNED_BYTE,&iPixel);
-            if(!sameColor(iPixel[0],iPixel[1],iPixel[2],colorBlack[0],colorBlack[1],colorBlack[2])&&!sameColor(iPixel[0],iPixel[1],iPixel[2],r,g,b)){
-                //如果上方的点不是边界点，直接压入
-                Point p={x,y};
-                //压入之后停止循环
-                pixelStack.push(p);
-                break;
-            }else{
-                x--;
-                glReadPixels(x+halfWidth,y+halfWidth,1,1,GL_RGB,GL_UNSIGNED_BYTE,&iPixel);
-            }
-        }
-    }
+    //y轴
+    glBegin(GL_LINES);
+    //glColor3f (0, 0, 0);
+    glVertex2f(WW/2, -WH);
+    glVertex2f(WW/2, WH);
+    glEnd();
+    
+    //glColor3f(0.2, 0.2, 0.3);
+    glFlush();
 }
-*/
-
 
 void drawAllGraphs(){
-    /*for(auto &g: graphs){
-        cout<<g.gType<<endl;
-        g.draw();
-    }*/
     for (int i =0; i<graphs.size(); i++){
         graphs[i]->draw();
     }
@@ -284,42 +214,7 @@ void drawAllGraphs(){
 void drawScene(void)
 {
     glFlush();
-    /* 
-     double rx, ry;
-     switch (mode) {
-        case LINE:
-            if( drawLine ){
-                bresenham(xi, yi, xf, yf);
-            }
-            break;
-        case ELLIPSE:
-            if( drawLine ){
-                rx = fabs(xi-xf);
-                ry = fabs(yi-yf);
-                DrawEllipse(xi, yi, rx, ry, 50);
-            }
-            break;
-        case CIRCLE:
-            if( drawLine ){
-                DrawCircle(sqrt(pow(xi-xf, 2) + pow(yi-yf, 2)), xi, yi);
-            }
-            break;
-        case FILL:
-            //Fill(xi, yi, 50, 50, 50);
-            firstClick = true;
-            drawLine = true;
-            break;
-        case POLY:
-            break;
-        case DRAG:
-            break;
-        case CLEAR:
-            firstClick = true;
-            clearScene();
-            break;
-        default:
-            break;
-    }*/
+    displayCoordinates();
     drawAllGraphs();
     switch (mode) {
         case CLEAR:
@@ -333,11 +228,12 @@ void drawScene(void)
     glFlush();
 }
 void rightBottonMenu(int value){
+    firstClick = true;
     switch (value) {
         case LINE:    case ELLIPSE:
         case CIRCLE:  case POLY:
         case FILL:    case DRAG:
-        case ROTATE:
+        case ROTATE:  case ZOOM:
             mode = value;
             break;
         case CLEAR:
@@ -346,8 +242,8 @@ void rightBottonMenu(int value){
                 delete graphs[i];
             }
             graphs.clear();
-            firstClick = true;
             clearScene();
+            displayCoordinates();
             glFlush();
             break;
         case EXIT:
@@ -361,6 +257,7 @@ void createGLUTMenus(){
     submenu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Drag", DRAG);
     glutAddMenuEntry("Rotate", ROTATE);
+    glutAddMenuEntry("Zoom", ZOOM);
     menu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Line", LINE);
     glutAddMenuEntry("Ellipse", ELLIPSE);
@@ -375,10 +272,10 @@ void createGLUTMenus(){
 // OpenGL window reshape routine.
 void setup()
 {
-    glViewport(0, 0, ww, wh); // Set viewport size to be entire OpenGL window.
+    glViewport(0, 0, WW, WH); // Set viewport size to be entire OpenGL window.
     glMatrixMode(GL_PROJECTION); // Set matrix mode to projection.
     glLoadIdentity(); // Clear current projection matrix to identity.
-    gluOrtho2D(0.0, (GLdouble)ww, 0.0, (GLdouble)wh); // Specify the orthographic (or perpendicular) projection, i.e., define the viewing box.
+    gluOrtho2D(0.0, (GLdouble)WW, 0.0, (GLdouble)WH); // Specify the orthographic (or perpendicular) projection, i.e., define the viewing box.
     glMatrixMode(GL_MODELVIEW); // Set matrix mode to modelview.
 }
 
@@ -388,7 +285,7 @@ int main(int argc, char **argv)
     cout<<"Start!"<<endl;
     glutInit(&argc, argv); // Initialize GLUT.
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // Set display mode as single-buffered and RGB color.
-    glutInitWindowSize(ww, wh); // Set OpenGL window size.
+    glutInitWindowSize(WW, WH); // Set OpenGL window size.
     glutInitWindowPosition(100, 100); // Set position of OpenGL window upper-left corner.
     glutCreateWindow("CG Project"); // Create OpenGL window with title.
     clearScene();
