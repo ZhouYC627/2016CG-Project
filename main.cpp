@@ -5,6 +5,7 @@
 //  Created by Zhou.Y.C on 10/31/16.
 //  Copyright © 2016 njucs. All rights reserved.
 //
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
@@ -188,19 +189,15 @@ void keyInput(unsigned char key, int x, int y)
 void displayCoordinates(){
     //x轴
     glBegin(GL_LINES);
-    //glColor3f (0, 0, 0);
     glVertex2f(-WW, WH/2);
     glVertex2f(WW, WH/2);
     glEnd();
     
     //y轴
     glBegin(GL_LINES);
-    //glColor3f (0, 0, 0);
     glVertex2f(WW/2, -WH);
     glVertex2f(WW/2, WH);
     glEnd();
-    
-    //glColor3f(0.2, 0.2, 0.3);
     glFlush();
 }
 
