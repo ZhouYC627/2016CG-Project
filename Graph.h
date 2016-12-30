@@ -10,7 +10,7 @@
 #define Graph_h
 
 #include "common.h"
-enum GRAPH {GLINE, GCIRCLE, GPOLY};
+enum GRAPH {GLINE, GCIRCLE, GELLIPSE, GPOLY};
 class Graph{
 public:
     int gType;
@@ -31,6 +31,7 @@ public:
     void draw();
     void zoom(double, double);
     void rotate(double angle, int x, int y);
+    void rebuild(Point[], int);
 };
 
 class Line: public Graph{

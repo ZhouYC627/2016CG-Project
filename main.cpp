@@ -12,6 +12,7 @@
 #include "common.h"
 #include "Graph.h"
 #include "PatternGeneration.h"
+#include "PolyClip.h"
 //#include "PolyScan.h"
 
 
@@ -21,9 +22,10 @@ int dragX, drayY;
 bool firstClick = true;
 vector<Point> polyPoints;
 vector<Graph*> graphs;
-int editObject, editBeginX, editBeginY;
+int editObject = -1, editBeginX, editBeginY;
 int lastScaleX, lastScaleY;
 double lastAngle;
+Line *lt, *ll, *lr, *lb;
 
 using namespace std;
 
@@ -59,7 +61,7 @@ void addGraph(){
         default:
             break;
     }
-
+    
 }
 void mouse(int btn, int state, int x, int y)
 {
@@ -95,13 +97,14 @@ void mouse(int btn, int state, int x, int y)
                     cout<<"Draw Poly!"<<endl;
                     //PolyScan(&polyPoints[0], (int)polyPoints.size(), 0.5);
                     Poly *p = new Poly;
+                    p->gType = GPOLY;
                     p->polypoints = polyPoints;
                     p->draw();
                     graphs.push_back(p);
                     polyPoints.clear();
                 }else{
                     Line l(lastPoint.x, lastPoint.y, now.x, now.y);
-                    //bresenham(lastPoint.x, lastPoint.y, now.x, now.y);
+                    //bresenham(xi.x, lastPoint.y, now.x, now.y);
                     l.draw();
                     polyPoints.push_back(now);
                     firstClick = true;
@@ -124,15 +127,60 @@ void mouse(int btn, int state, int x, int y)
                 }
             }
         }
+        if (mode == CLIP){
+            lt = new Line(xi, yi, now.x, yi);
+            ll = new Line(xi, yi, xi, now.y);
+            lr = new Line(now.x, yi, now.x, now.y);
+            lb = new Line(xi, now.y, now.x, now.y);
+            graphs.push_back(lt);
+            graphs.push_back(ll);
+            graphs.push_back(lr);
+            graphs.push_back(lb);
+        }
     }else if (btn == GLUT_LEFT_BUTTON && state == GLUT_UP){
-
+        if (mode==CLIP) {
+            for (int i = 0; i<4; i++) {
+                graphs.pop_back();
+            }
+            firstClick = true;
+            Rect clipRect;
+            clipRect.xmin = min(xi, now.x);
+            clipRect.xmax = max(xi, now.x);
+            clipRect.ymin = min(yi, now.y);
+            clipRect.ymax = max(yi, now.y);
+            for (int i = 0; i<graphs.size(); i++) {
+                if (graphs[i]->gType ==GPOLY){
+                    Poly *p = (Poly*)graphs[i];
+                    int n = 0;
+                    Point *temp = SutherlangHodgmanPolyClip(&p->polypoints[0], (int)p->polypoints.size(), clipRect, n);
+                    if (n>0){
+                        p->rebuild(temp, n);
+                    }
+                }
+            }
+            clearScene();
+        }
     }
-
+    if (btn == GLUT_RIGHT_BUTTON){
+        cout<<"RIGHT button!"<<endl;
+    }
     glutPostRedisplay();
 }
-
+void selectObject(Point now){
+    editObject = -1;
+    for (int i = 0; i<graphs.size();i++){
+        if (graphs[i]->ptInGraph(now) && graphs[i]->gType == GPOLY){
+            editObject = i;
+            cout<<"editobj: "<<editObject<<endl;
+            break;
+        }
+    }
+}
+int motionCount = 0;
 void motion(int x, int y){
-    
+    if (++motionCount%5 != 0) {
+        return;
+    }
     Point now{x,WH - y};
     if (mode == DRAG && editObject>=0){
         //cout<<"drag "<<x-dragBeginX<<" "<<y-dragBeginY<<endl;
@@ -140,13 +188,13 @@ void motion(int x, int y){
         graphs[editObject]->move(now.x-editBeginX, now.y-editBeginY);
         editBeginX = now.x;
         editBeginY = now.y;
-    }else
+    }
     if (mode == ROTATE && editObject>=0){
         clearScene();
         double angle = atan2(x-WW/2, y-WH/2);
         graphs[editObject]->rotate(angle-lastAngle, WW/2, WH/2);
         lastAngle = angle;
-    }else
+    }
     if (mode == ZOOM && editObject>=0 && !firstClick){
         clearScene();
         double sx = (double)(now.x-WW/2)/(double)(xf-WW/2);
@@ -159,9 +207,20 @@ void motion(int x, int y){
         xf = now.x;
         yf = now.y;
         //firstClick = true;
-    }else return;
+    }
+    if (mode==CLIP){
+        clearScene();
+        lt->end.x = now.x;
+        ll->end.y = now.y;
+        lr->begin.x = now.x;
+        lb->begin.y = now.y;
+        lr->end.x = now.x;
+        lr->end.y = now.y;
+        lb->end.x = now.x;
+        lb->end.y = now.y;
+    }
     glutPostRedisplay();
-
+    
 }
 // Keyboard input processing routine.
 void keyInput(unsigned char key, int x, int y)
@@ -226,11 +285,13 @@ void drawScene(void)
 }
 void rightBottonMenu(int value){
     firstClick = true;
+    editObject = -1;
     switch (value) {
         case LINE:    case ELLIPSE:
         case CIRCLE:  case POLY:
         case FILL:    case DRAG:
         case ROTATE:  case ZOOM:
+        case CLIP:
             mode = value;
             break;
         case CLEAR:
@@ -255,6 +316,7 @@ void createGLUTMenus(){
     glutAddMenuEntry("Drag", DRAG);
     glutAddMenuEntry("Rotate", ROTATE);
     glutAddMenuEntry("Zoom", ZOOM);
+    glutAddMenuEntry("Clip", CLIP);
     menu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Line", LINE);
     glutAddMenuEntry("Ellipse", ELLIPSE);
@@ -281,7 +343,7 @@ int main(int argc, char **argv)
 {
     cout<<"Start!"<<endl;
     glutInit(&argc, argv); // Initialize GLUT.
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // Set display mode as single-buffered and RGB color.
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // Set display mode as double-buffered and RGB color.
     glutInitWindowSize(WW, WH); // Set OpenGL window size.
     glutInitWindowPosition(100, 100); // Set position of OpenGL window upper-left corner.
     glutCreateWindow("CG Project"); // Create OpenGL window with title.

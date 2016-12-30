@@ -70,6 +70,12 @@ void Poly::zoom(double scale_x, double scale_y){
         polypoints[i].y += WH/2;
     }
 }
+void Poly::rebuild(Point newPoints[], int n){
+    polypoints.clear();
+    for (int i = 0; i<n; i++) {
+        polypoints.push_back(Point(newPoints[i]));
+    }
+}
 
 bool Line::ptInGraph(Point p){
     int db = sqrt(pow(begin.x-p.x, 2) + pow(begin.y-p.y, 2));
@@ -121,6 +127,7 @@ void Circle::zoom(double scalex, double scaley){
     radius = round(radius*((scalex+scaley) / 2));
 }
 Circle::Circle(int r, int x, int y){
+    gType = GCIRCLE;
     radius = r;
     ctrPoint.x = x;
     ctrPoint.y = y;
@@ -128,6 +135,7 @@ Circle::Circle(int r, int x, int y){
 
 
 Ellipse::Ellipse(int x, int y, int rx, int ry){
+    gType = GELLIPSE;
     ctrPoint.x = x;
     ctrPoint.y = y;
     this->rx = rx;

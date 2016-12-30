@@ -33,8 +33,16 @@ struct Point{
     int y;
     int b;
 };
+
+struct Rect{
+    int xmin;
+    int xmax;
+    int ymin;
+    int ymax;
+};
+
 void setPixel(int x, int y);
 
-enum MODE {LINE = 0, ELLIPSE, CIRCLE, POLY, FILL, DRAG, ROTATE, ZOOM, CLEAR, EXIT};
+enum MODE {LINE = 0, ELLIPSE, CIRCLE, POLY, FILL, DRAG, ROTATE, ZOOM, CLIP, CLEAR, EXIT};
 
 #endif /* common_h */
