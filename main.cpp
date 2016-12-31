@@ -309,7 +309,7 @@ void drawScene(void)
     glFlush();
 }
 
-static string filename[] = {"Table-141.off", "Chair-112.off"};
+static string filename[] = {"Table-141.off", "Vase-379.off", "Chair-112.off", "Horse.off"};
 
 void rightBottonMenu(int value){
     firstClick = true;
@@ -324,12 +324,13 @@ void rightBottonMenu(int value){
             break;
         case TD:      case TABLE:
         case VASE:    case CHAIR:
-        case HA:
+        case HORSE:
             mode = TD;
-            clearScene();
             if(!ReadOffFile(filename[value - TABLE].c_str()))
                exit(1);
             ThreeDInit();
+            clearScene();
+            glFlush();
             cout<<"3D"<<endl;
             break;
         case CLEAR:
@@ -355,7 +356,7 @@ void createGLUTMenus(){
     glutAddMenuEntry("Table", TABLE);
     glutAddMenuEntry("Vase", VASE);
     glutAddMenuEntry("Chair", CHAIR);
-    glutAddMenuEntry("Ha", HA);
+    glutAddMenuEntry("Horse", HORSE);
     
     submenu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Drag", DRAG);

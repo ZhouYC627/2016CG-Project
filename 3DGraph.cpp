@@ -203,7 +203,7 @@ void GLUTResize(int w, int h){
 
 void ThreeDMotion(int x, int y){
     // Invert y coordinate
-    y = GLUTwindow_height - y;
+    y = WH - y;
     
     // Process mouse motion event
     if (rotating) {
@@ -228,7 +228,7 @@ void ThreeDMotion(int x, int y){
 
 void ThreeDmouse(int button, int state, int x, int y){
     // Invert y coordinate
-    y = GLUTwindow_height - y;
+    y = WH - y;
     
     // Process mouse button event
     rotating = (button == GLUT_LEFT_BUTTON );

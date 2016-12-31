@@ -43,6 +43,6 @@ struct Rect{
 
 void setPixel(int x, int y);
 
-enum MODE {LINE = 0, CURVE, ELLIPSE, CIRCLE, POLY, FILL, TD, TABLE, VASE, CHAIR, HA, DRAG, ROTATE, ZOOM, CLIP, CLEAR, EXIT};
+enum MODE {LINE = 0, CURVE, ELLIPSE, CIRCLE, POLY, FILL, TD, TABLE, VASE, CHAIR, HORSE, DRAG, ROTATE, ZOOM, CLIP, CLEAR, EXIT};
 
 #endif /* common_h */
