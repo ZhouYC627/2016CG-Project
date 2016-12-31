@@ -308,10 +308,6 @@ void drawScene(void)
     }
     glFlush();
 }
-
-//static string filename[] = {"Table-141.off", "Vase-379.off", "Chair-112.off", "h_a.off"};
-static char *filename = "Table-141.off";
-
 void rightBottonMenu(int value){
     firstClick = true;
     editObject = -1;
@@ -323,14 +319,10 @@ void rightBottonMenu(int value){
         case CLIP:    case CURVE:
             mode = value;
             break;
-        case TABLE: case VASE:
-        case CHAIR: case HA:
         case TD:
             mode = TD;
             clearScene();
-            //ThreeDInit();
-            if(!ReadOffFile(filename))
-                exit(1);
+            ThreeDInit();
             cout<<"3D"<<endl;
             break;
         case CLEAR:
@@ -350,17 +342,12 @@ void rightBottonMenu(int value){
     }
 }
 void createGLUTMenus(){
-    int menu, submenu, tdmenu;
+    int menu, submenu;
     submenu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Drag", DRAG);
     glutAddMenuEntry("Rotate", ROTATE);
     glutAddMenuEntry("Zoom", ZOOM);
     glutAddMenuEntry("Clip", CLIP);
-    tdmenu = glutCreateMenu(rightBottonMenu);
-    glutAddMenuEntry("Table", TABLE);
-    glutAddMenuEntry("Vase", VASE);
-    glutAddMenuEntry("CHAIR", CHAIR);
-    glutAddMenuEntry("HA", HA);
     menu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Line", LINE);
     glutAddMenuEntry("Curve", CURVE);
@@ -368,7 +355,7 @@ void createGLUTMenus(){
     glutAddMenuEntry("Circle", CIRCLE);
     glutAddMenuEntry("Poly", POLY);
     glutAddMenuEntry("Fill", FILL);
-    glutAddSubMenu("3D Grapy", tdmenu);
+    glutAddMenuEntry("3D Grapy", TD);
     glutAddSubMenu("Edit", submenu);
     glutAddMenuEntry("Clear", CLEAR);
     glutAddMenuEntry("Exit", EXIT);
@@ -385,11 +372,13 @@ void setup()
 }
 
 // Main routine: defines window properties, creates window, registers callback routines and begins processing.
+static char *filename = "Table-141.off";
 
 int main(int argc, char **argv)
 {
     cout<<"Start!"<<endl;
-
+    if(!ReadOffFile(filename))
+        exit(1);
     glutInit(&argc, argv); // Initialize GLUT.
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // Set display mode as double-buffered and RGB color.
     //glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // | GLUT_STENCIL
@@ -403,7 +392,7 @@ int main(int argc, char **argv)
     glutMouseFunc(mouse); // Begin processing.
     glutMotionFunc(motion);
     glutIdleFunc(0);
-    ThreeDInit();
+    //ThreeDInit();
     createGLUTMenus();
     glutMainLoop();
     return 0;
