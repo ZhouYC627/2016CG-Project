@@ -308,6 +308,9 @@ void drawScene(void)
     }
     glFlush();
 }
+
+static string filename[] = {"Table-141.off", "Chair-112.off"};
+
 void rightBottonMenu(int value){
     firstClick = true;
     editObject = -1;
@@ -319,9 +322,13 @@ void rightBottonMenu(int value){
         case CLIP:    case CURVE:
             mode = value;
             break;
-        case TD:
+        case TD:      case TABLE:
+        case VASE:    case CHAIR:
+        case HA:
             mode = TD;
             clearScene();
+            if(!ReadOffFile(filename[value - TABLE].c_str()))
+               exit(1);
             ThreeDInit();
             cout<<"3D"<<endl;
             break;
@@ -342,12 +349,20 @@ void rightBottonMenu(int value){
     }
 }
 void createGLUTMenus(){
-    int menu, submenu;
+    int menu, submenu, tdmenu;
+    
+    tdmenu = glutCreateMenu(rightBottonMenu);
+    glutAddMenuEntry("Table", TABLE);
+    glutAddMenuEntry("Vase", VASE);
+    glutAddMenuEntry("Chair", CHAIR);
+    glutAddMenuEntry("Ha", HA);
+    
     submenu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Drag", DRAG);
     glutAddMenuEntry("Rotate", ROTATE);
     glutAddMenuEntry("Zoom", ZOOM);
     glutAddMenuEntry("Clip", CLIP);
+
     menu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Line", LINE);
     glutAddMenuEntry("Curve", CURVE);
@@ -355,7 +370,7 @@ void createGLUTMenus(){
     glutAddMenuEntry("Circle", CIRCLE);
     glutAddMenuEntry("Poly", POLY);
     glutAddMenuEntry("Fill", FILL);
-    glutAddMenuEntry("3D Grapy", TD);
+    glutAddSubMenu("3D Grapy", tdmenu);
     glutAddSubMenu("Edit", submenu);
     glutAddMenuEntry("Clear", CLEAR);
     glutAddMenuEntry("Exit", EXIT);
@@ -372,13 +387,13 @@ void setup()
 }
 
 // Main routine: defines window properties, creates window, registers callback routines and begins processing.
-static char *filename = "Table-141.off";
+//static char *filename = "Table-141.off";
 
 int main(int argc, char **argv)
 {
     cout<<"Start!"<<endl;
-    if(!ReadOffFile(filename))
-        exit(1);
+    //if(!ReadOffFile(filename))
+    //   exit(1);
     glutInit(&argc, argv); // Initialize GLUT.
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // Set display mode as double-buffered and RGB color.
     //glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // | GLUT_STENCIL
