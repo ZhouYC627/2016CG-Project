@@ -140,3 +140,47 @@ void DrawCircle(float radius, float x, float y){
         pnarcArc(radius, x, y, i);
     }
 }
+
+void set_pixel_cp(Point p){
+    glPointSize(4);
+    glBegin(GL_POINTS);
+    glColor3f(1, 0, 0);
+    glVertex2d(p.x, p.y);
+    glEnd();
+}
+
+void Bezier(Point curvePoint[], int num){
+    double u, du;
+    du = 1.0 / 1000.0;
+    
+    if (num > 0){
+        //ª≠øÿ÷∆µ„
+        for (int i = 0; i < num; i++){
+            set_pixel_cp(curvePoint[i]);
+        }
+        //ª≠øÿ÷∆∂‡±ﬂ–Œ
+        glColor3f(0.2, 0.3, 0.3);
+        for (int i = 1; i < num; i++){
+            glBegin(GL_LINES);
+            //glColor3f(0, 0, 0);
+            glVertex2f(curvePoint[i].x, curvePoint[i].y);
+            glVertex2f(curvePoint[i-1].x, curvePoint[i-1].y);
+            glEnd();
+        }
+        //ª≠«˙œﬂ
+        Point *p = new Point[num];
+        for (u = 0.0; u < 1.0; u += du){
+            for (int i = 0; i < num; i++){
+                p[i].x = curvePoint[i].x;
+                p[i].y = curvePoint[i].y;
+            }
+            for (int i = 1; i < num; i++){
+                for (int j = 0; j < num - i; j++){
+                    p[j].x = (1 - u)*p[j].x + u*p[j + 1].x;
+                    p[j].y = (1 - u)*p[j].y + u*p[j + 1].y;
+                }
+            }
+            setPixel(p[0].x, p[0].y);
+        }
+    }
+}

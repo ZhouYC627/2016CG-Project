@@ -22,6 +22,8 @@ void Graph::move(int x, int y){
 }
 void Graph::rotate(double angle, int x, int y){
 }
+void Graph::zoom(double sx, double sy){
+}
 
 bool Poly::ptInGraph(Point p){
     int nCross = 0;
@@ -161,6 +163,37 @@ bool Ellipse::ptInGraph(Point p){
     return fabs(f-1)<0.1;
 }
 
+void Curve::draw(){
+    Bezier(&curvePoints[0], (int)curvePoints.size());
+}
+void Curve::move(int x, int y){
+    Translation(&curvePoints[0], (int)curvePoints.size(), 0.5, x, y);
+}
 
-
+bool Curve::ptInGraph(Point p){
+    int nCross = 0;
+    int n = (int)curvePoints.size();
+    for (int i = 0; i < n; i++) {
+        Point p1 = curvePoints[i];
+        Point p2 = curvePoints[(i + 1) % n];
+        // 求解 y=p.y 与 p1 p2 的交点
+        // p1p2 与 y=p0.y平行
+        if (p1.y == p2.y)
+            continue;
+        // 交点在p1p2延长线上
+        if (p.y < min(p1.y, p2.y))
+            continue;
+        // 交点在p1p2延长线上
+        if (p.y >= max(p1.y, p2.y))
+            continue;
+        // 求交点的 X 坐标
+        double x = (double) (p.y - p1.y) * (double) (p2.x - p1.x)
+        / (double) (p2.y - p1.y) + p1.x;
+        // 只统计单边交点
+        if (x > p.x)
+            nCross++;
+    }
+    cout<<"pt in curve: "<< nCross<<endl;
+    return (nCross % 2 == 1);
+}
 

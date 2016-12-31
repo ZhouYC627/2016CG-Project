@@ -13,6 +13,7 @@
 #include "Graph.h"
 #include "PatternGeneration.h"
 #include "PolyClip.h"
+#include "3DGraph.h"
 //#include "PolyScan.h"
 
 
@@ -36,6 +37,7 @@ int mode = 0;
 
 void clearScene(){
     glClearColor(0.3, 0.6, 0.4, 1.0); // Set foreground color
+    //glClearColor(1, 1, 1, 1);
     glColor3f(0.2, 0.3, 0.3); // Clear screen to background color.
     glClear(GL_COLOR_BUFFER_BIT);   //Flush created objects to the screen, i.e., force rendering.
 }
@@ -65,6 +67,11 @@ void addGraph(){
 }
 void mouse(int btn, int state, int x, int y)
 {
+    if (mode==TD){
+        ThreeDmouse(btn, state, x, y);
+        return;
+    }
+    
     Point now;
     now.x = x;
     now.y = WH - y;
@@ -88,19 +95,28 @@ void mouse(int btn, int state, int x, int y)
         }
         
         //more than 2 clicks
-        if (mode == POLY){
+        if (mode == POLY || mode ==CURVE){
             if (polyPoints.empty()){
                 polyPoints.push_back(now);
             }else{
                 Point lastPoint = polyPoints.back();
                 if ((abs(now.x-polyPoints[0].x)+abs(now.y-polyPoints[0].y))<10){
-                    cout<<"Draw Poly!"<<endl;
-                    //PolyScan(&polyPoints[0], (int)polyPoints.size(), 0.5);
-                    Poly *p = new Poly;
-                    p->gType = GPOLY;
-                    p->polypoints = polyPoints;
-                    p->draw();
-                    graphs.push_back(p);
+                    if (mode==POLY){
+                        cout<<"Draw Poly!"<<endl;
+                        //PolyScan(&polyPoints[0], (int)polyPoints.size(), 0.5);
+                        Poly *p = new Poly;
+                        p->gType = GPOLY;
+                        p->polypoints = polyPoints;
+                        p->draw();
+                        graphs.push_back(p);
+                    }
+                    if(mode==CURVE){
+                        Curve *c = new Curve;
+                        c->gType = GCURVE;
+                        c->curvePoints = polyPoints;
+                        c->draw();
+                        graphs.push_back(c);
+                    }
                     polyPoints.clear();
                 }else{
                     Line l(lastPoint.x, lastPoint.y, now.x, now.y);
@@ -179,6 +195,10 @@ void selectObject(Point now){
 int motionCount = 0;
 void motion(int x, int y){
     if (++motionCount%5 != 0) {
+        return;
+    }
+    if (mode==TD){
+        ThreeDMotion(x, y);
         return;
     }
     Point now{x,WH - y};
@@ -269,7 +289,12 @@ void drawAllGraphs(){
 // Drawing (display) routine.
 void drawScene(void)
 {
-    glFlush();
+    if (mode == TD){
+        ThreeDRedraw();
+        glFlush();
+        return;
+    }
+    //glFlush();
     displayCoordinates();
     drawAllGraphs();
     switch (mode) {
@@ -283,6 +308,10 @@ void drawScene(void)
     }
     glFlush();
 }
+
+//static string filename[] = {"Table-141.off", "Vase-379.off", "Chair-112.off", "h_a.off"};
+static char *filename = "Table-141.off";
+
 void rightBottonMenu(int value){
     firstClick = true;
     editObject = -1;
@@ -291,8 +320,18 @@ void rightBottonMenu(int value){
         case CIRCLE:  case POLY:
         case FILL:    case DRAG:
         case ROTATE:  case ZOOM:
-        case CLIP:
+        case CLIP:    case CURVE:
             mode = value;
+            break;
+        case TABLE: case VASE:
+        case CHAIR: case HA:
+        case TD:
+            mode = TD;
+            clearScene();
+            //ThreeDInit();
+            if(!ReadOffFile(filename))
+                exit(1);
+            cout<<"3D"<<endl;
             break;
         case CLEAR:
             cout<<"clear"<<endl;
@@ -311,18 +350,25 @@ void rightBottonMenu(int value){
     }
 }
 void createGLUTMenus(){
-    int menu, submenu;
+    int menu, submenu, tdmenu;
     submenu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Drag", DRAG);
     glutAddMenuEntry("Rotate", ROTATE);
     glutAddMenuEntry("Zoom", ZOOM);
     glutAddMenuEntry("Clip", CLIP);
+    tdmenu = glutCreateMenu(rightBottonMenu);
+    glutAddMenuEntry("Table", TABLE);
+    glutAddMenuEntry("Vase", VASE);
+    glutAddMenuEntry("CHAIR", CHAIR);
+    glutAddMenuEntry("HA", HA);
     menu = glutCreateMenu(rightBottonMenu);
     glutAddMenuEntry("Line", LINE);
+    glutAddMenuEntry("Curve", CURVE);
     glutAddMenuEntry("Ellipse", ELLIPSE);
     glutAddMenuEntry("Circle", CIRCLE);
     glutAddMenuEntry("Poly", POLY);
     glutAddMenuEntry("Fill", FILL);
+    glutAddSubMenu("3D Grapy", tdmenu);
     glutAddSubMenu("Edit", submenu);
     glutAddMenuEntry("Clear", CLEAR);
     glutAddMenuEntry("Exit", EXIT);
@@ -339,11 +385,14 @@ void setup()
 }
 
 // Main routine: defines window properties, creates window, registers callback routines and begins processing.
+
 int main(int argc, char **argv)
 {
     cout<<"Start!"<<endl;
+
     glutInit(&argc, argv); // Initialize GLUT.
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // Set display mode as double-buffered and RGB color.
+    //glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // | GLUT_STENCIL
     glutInitWindowSize(WW, WH); // Set OpenGL window size.
     glutInitWindowPosition(100, 100); // Set position of OpenGL window upper-left corner.
     glutCreateWindow("CG Project"); // Create OpenGL window with title.
@@ -353,6 +402,8 @@ int main(int argc, char **argv)
     glutKeyboardFunc(keyInput); // Register keyboard routine.
     glutMouseFunc(mouse); // Begin processing.
     glutMotionFunc(motion);
+    glutIdleFunc(0);
+    ThreeDInit();
     createGLUTMenus();
     glutMainLoop();
     return 0;

@@ -10,7 +10,7 @@
 #define Graph_h
 
 #include "common.h"
-enum GRAPH {GLINE, GCIRCLE, GELLIPSE, GPOLY};
+enum GRAPH {GLINE, GCURVE, GCIRCLE, GELLIPSE, GPOLY};
 class Graph{
 public:
     int gType;
@@ -18,7 +18,7 @@ public:
     virtual void move(int , int);
     virtual void draw()=0;
     virtual void rotate(double angle, int x, int y);
-    virtual void zoom(double, double)=0;
+    virtual void zoom(double, double);
     virtual ~Graph();
 };
 
@@ -65,5 +65,16 @@ public:
     void move(int , int);
     void zoom(double, double);
     bool ptInGraph(Point);
+};
+
+class Curve: public Graph{
+public:
+    Point begin, end;
+    vector<Point> curvePoints;
+    bool ptInGraph(Point);
+    void move(int , int);
+    void draw();
+    //void zoom(double, double);
+    //void rotate(double angle, int x, int y);
 };
 #endif /* Graph_h */

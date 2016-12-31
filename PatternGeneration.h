@@ -12,5 +12,6 @@
 void bresenham(int x0, int y0, int x1, int y1);
 void DrawEllipse(float cx, float cy, float rx, float ry, int num_segments);
 void DrawCircle(float radius, float x, float y);
+void Bezier(Point curvePoint[], int num);
 
 #endif /* PatternGeneration_h */
